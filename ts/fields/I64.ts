@@ -3,17 +3,23 @@ import { assertWithin, readAll, writeAll } from "../utils.ts";
 
 export class I64 implements Field<bigint> {
 	readonly size = 8;
-	encode(value: bigint, buf: DataView, offset = 0) {
+	constructor(readonly littleEndian = false) {}
+	validate(value: bigint) {
 		assertWithin(
 			value,
 			-0x10000000000000000n / 2n,
 			0x10000000000000000n / 2n - 1n,
 		);
-		buf.setBigInt64(offset, value);
+	}
+	encode(value: bigint, buf: DataView, offset = 0) {
+		buf.setBigInt64(offset, value, this.littleEndian);
 		return this.size;
 	}
 	decode(buf: DataView, offset = 0) {
-		return { bytesRead: this.size, value: buf.getBigInt64(offset) };
+		return {
+			bytesRead: this.size,
+			value: buf.getBigInt64(offset, this.littleEndian),
+		};
 	}
 	write(value: bigint, stream: Writer) {
 		const buf = new ArrayBuffer(this.size);

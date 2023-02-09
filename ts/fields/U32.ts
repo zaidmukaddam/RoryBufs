@@ -3,9 +3,12 @@ import { assertWithin, readAll, writeAll } from "../utils.ts";
 
 export class U32 implements Field<number> {
 	readonly size = 4;
-	encode(value: number, buf: DataView, offset = 0) {
+	constructor(readonly littleEndian = false) {}
+	validate(value: number) {
 		assertWithin(value, 0, 0xFFFFFFFF);
-		buf.setUint32(offset, value);
+	}
+	encode(value: number, buf: DataView, offset = 0) {
+		buf.setUint32(offset, value, this.littleEndian);
 		return this.size;
 	}
 	decode(buf: DataView, offset = 0) {
